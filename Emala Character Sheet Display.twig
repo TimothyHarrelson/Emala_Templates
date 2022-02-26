@@ -1,0 +1,417 @@
+{% import _self as sheet %}
+{# ---------- Characteristics ---------- #}
+{% set str_total = (variables.str_base ?? 0) + (variables.str_modifier ?? 0) %}
+{% set dex_total = (variables.dex_base ?? 0) + (variables.dex_modifier ?? 0) %}
+{% set con_total = (variables.con_base ?? 0) + (variables.con_modifier ?? 0) %}
+{% set siz_total = (variables.siz_base ?? 0) + (variables.siz_modifier ?? 0) %}
+{% set int_total = (variables.int_base ?? 0) + (variables.int_modifier ?? 0) %}
+{% set pow_total = (variables.pow_base ?? 0) + (variables.pow_modifier ?? 0) %}
+{% set cha_total = (variables.cha_base ?? 0) + (variables.cha_modifier ?? 0) %}
+{##}
+{# Body #}
+{% set height_total = (min(max(siz_total, 0), 1) * 45) + (min(max(siz_total - 1, 0), 1) * 35) + (min(max(siz_total - 2, 0), 1) * 25) + (min(max(siz_total - 3, 0), 1) * 15) + (min(max(siz_total - 4, 0), 3) * 10) + (max(siz_total - 7, 0) * 5) %}
+{% set weight_total = (variables.body_type is defined) ? ((variables.body_type == 'Lithe') ? siz_total * 5 : ((variables.body_type == 'Medium') ? siz_total * 7 : siz_total * 9) ) : 0 %}
+{##}
+{# ---------- Attributes ---------- #}
+{% set action_point_total = ((int_total + dex_total - 1)/12) + 1 + (variables.action_points_modifier ?? 0) %}
+{% set initiative_total = ((int_total + dex_total)/2)|round(0, 'ceil') + (variables.initiative_bonus_modifier ?? 0) %}
+{% set healing_rate_total = (con_total / 6.0)|round(0, 'ceil') + (variables.healing_rate_modifier ?? 0) %}
+{% set xp_mod_total = (cha_total / 6.0)|round(0, 'ceil') - 2 %}
+{% set mp_total = pow_total + (magic_points_modifier ?? 0) %}
+{% set mp_current = mp_total - (magic_points_used ?? 0) %}
+{% set luck_total = (cha_total / 6.0)|round(0, 'ceil') + (luck_points_modifier ?? 0) %}
+{% set luck_current = luck_total - (luck_points_used ?? 0) %}
+{% set hp_mod = ((con_total + siz_total) / 5.0)|round(0, 'ceil') %}
+{% set mp_regen_rate = 1 + (variables.magic_point_recovery_modifier ?? 0) %}
+{##}
+{# Damage Modifier #}
+{% set str_siz = str_total + siz_total %}
+{% set damage_mod_row = min((str_siz / 5.0)|round(0, 'ceil'), 10) + max(((str_siz - 50) / 10.0)|round(0, 'ceil'), 0) - 5 %}
+{% set damage_mod_max = (damage_mod_row|abs - ((max((damage_mod_row|abs - 6), 0) / 10.0)|round(0, 'ceil'))) * 2 %}
+{% set damage_mod_dice = [0, 0, 0, 0, 0, 0] %}
+{% set damage_mod_table = [[0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0], [0, 0, 0, 2, 0, 0], [0, 0, 1, 1, 0, 0], [0, 0, 2, 0, 0, 0], [0, 1, 1, 0, 0, 0], [0, 2, 0, 0, 0, 0]] %}
+{##}
+{% set tableLooped = (damage_mod_row|abs / 11)|round(0, 'floor') %}
+{% set tableRemainderIndex = (damage_mod_row|abs % 11) - 1 %}
+{##}
+{% if tableLooped > 0 %}
+    {% for diceStep in damage_mod_table|last %}
+        {% set damage_mod_dice = {(loop.index0): damage_mod_dice[loop.index0] + diceStep * tableLooped} + damage_mod_dice %}
+    {% endfor %}
+{% endif %}
+{% if tableRemainderIndex >= 0 %}
+    {% for diceStep in damage_mod_table[tableRemainderIndex] %}
+        {% set damage_mod_dice = {(loop.index0): damage_mod_dice[loop.index0] + diceStep} + damage_mod_dice %}
+    {% endfor %}
+{% endif %}
+{##}
+{% set dice_step_strings = ['d12', 'd10', 'd8', 'd6', 'd4', 'd2'] %}
+{% set dice_mod_strings = [] %}
+{% for diceStep in damage_mod_dice %} 
+    {% if diceStep > 0 %}
+        {% set dice_mod_strings = dice_mod_strings|merge([diceStep ~ dice_step_strings[loop.revindex0]]) %}
+    {% endif %}
+{% endfor %}
+{##}
+{% set damage_mod_base = (damage_mod_row == 0) ? '0' : (((damage_mod_row < 0) ? '-' : '+') ~ dice_mod_strings|reverse|join((damage_mod_row < 0) ? ' - ' : ' + ')) %}
+{##}
+{# ---------- Skills ---------- #}
+{% set stats = {
+    STR: {name: "STR", name_long: 'Strength', Total: str_total}, 
+    DEX: {name: "DEX", name_long: 'Dexterity', Total: dex_total}, 
+    CON: {name: "CON", name_long: 'Constitution', Total: con_total}, 
+    SIZ: {name: "SIZ", name_long: 'Size', Total: siz_total},
+    INT: {name: "INT", name_long: 'Intelligence', Total: int_total},
+    POW: {name: "POW", name_long: 'Power', Total: pow_total},
+    CHA: {name: "CHA", name_long: 'Charisma', Total: cha_total},
+} %}
+{% set resistanceSkills = {
+    Brawn: {name: 'Brawn', Attribute1: stats.STR, Attribute2: stats.SIZ, type: 'Standard', ranks: variables.brawn_ranks, mod: variables.brawn_modifier}, 
+    Endurance: {name: 'Endurance', Attribute1: stats.CON, Attribute2: stats.CON, type: 'Standard', ranks: variables.endurance_ranks, mod: variables.endurance_modifier}, 
+    Evade: {name: 'Evade', Attribute1: stats.DEX, Attribute2: stats.DEX, type: 'Standard', ranks: variables.evade_ranks, mod: variables.evade_modifier}, 
+    Willpower: {name: 'Willpower', Attribute1: stats.POW, Attribute2: stats.POW, type: 'Standard', ranks: variables.willpower_ranks, mod: variables.willpower_modifier}
+} %}
+{% set standardSkills = {
+    Athletics: {name: 'Athletics', Attribute1: stats.STR, Attribute2: stats.DEX, type: 'Standard', ranks: variables.athletics_ranks, mod: variables.athletics_modifier}, 
+    Boating: {name: 'Boating', Attribute1: stats.STR, Attribute2: stats.CON, type: 'Standard', ranks: variables.boating_ranks, mod: variables.boating_modifier}, 
+    Conceal: {name: 'Conceal', Attribute1: stats.DEX, Attribute2: stats.POW, type: 'Standard', ranks: variables.conceal_ranks, mod: variables.conceal_modifier}, 
+    Customs: {name: 'Customs', Attribute1: stats.INT, Attribute2: stats.INT, type: 'Standard', ranks: variables.customs_ranks, mod: variables.customs_modifier},
+    Dance: {name: 'Dance', Attribute1: stats.DEX, Attribute2: stats.CHA, type: 'Standard', ranks: variables.dance_ranks, mod: variables.dance_modifier}, 
+    Deceit: {name: 'Deceit', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Standard', ranks: variables.deceit_ranks, mod: variables.deceit_modifier}, 
+    Drive: {name: 'Drive', Attribute1: stats.DEX, Attribute2: stats.POW, type: 'Standard', ranks: variables.drive_ranks, mod: variables.drive_modifier}, 
+    First_Aid: {name: 'First Aid', Attribute1: stats.DEX, Attribute2: stats.INT, type: 'Standard', ranks: variables.first_aid_ranks, mod: variables.first_aid_modifier}, 
+    Influence: {name: 'Influence', Attribute1: stats.CHA, Attribute2: stats.CHA, type: 'Standard', ranks: variables.influence_ranks, mod: variables.influence_modifier}, 
+    Insight: {name: 'Insight', Attribute1: stats.INT, Attribute2: stats.POW, type: 'Standard', ranks: variables.insight_ranks, mod: variables.insight_modifier}, 
+    Locale: {name: 'Locale', Attribute1: stats.INT, Attribute2: stats.INT, type: 'Standard', ranks: variables.locale_ranks, mod: variables.locale_modifier}, 
+    Perception: {name: 'Perception', Attribute1: stats.INT, Attribute2: stats.POW, type: 'Standard', ranks: variables.perception_ranks, mod: variables.perception_modifier}, 
+    Ride: {name: 'Ride', Attribute1: stats.DEX, Attribute2: stats.POW, type: 'Standard', ranks: variables.ride_ranks, mod: variables.ride_modifier}, 
+    Sing: {name: 'Sing', Attribute1: stats.POW, Attribute2: stats.CHA, type: 'Standard', ranks: variables.sing_ranks, mod: variables.sing_modifier}, 
+    Stealth: {name: 'Stealth', Attribute1: stats.DEX, Attribute2: stats.INT, type: 'Standard', ranks: variables.stealth_ranks, mod: variables.stealth_modifier}, 
+    Swim: {name: 'Swim', Attribute1: stats.STR, Attribute2: stats.CON, type: 'Standard', ranks: variables.swim_ranks, mod: variables.swim_modifier}
+} %}
+{% set professionalSkills = {
+    Acrobatics: {name: 'Acrobatics', Attribute1: stats.STR, Attribute2: stats.DEX, type: 'Professional', ranks: variables.acrobatics_ranks, mod: variables.acrobatics_modifier}, 
+    Acting: {name: 'Acting', Attribute1: stats.CHA, Attribute2: stats.CHA, type: 'Professional', ranks: variables.acting_ranks, mod: variables.acting_modifier}, 
+    Art: {name: 'Art', Attribute1: stats.POW, Attribute2: stats.CHA, type: 'Professional', ranks: variables.art_ranks, mod: variables.art_modifier}, 
+    Bureaucracy: {name: 'Bureaucracy', Attribute1: stats.INT, Attribute2: stats.INT, type: 'Professional', ranks: variables.bureaucracy_ranks, mod: variables.bureaucracy_modifier},
+    Commerce: {name: 'Commerce', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Professional', ranks: variables.commerce_ranks, mod: variables.commerce_modifier}, 
+    Courtesy: {name: 'Courtesy', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Professional', ranks: variables.courtesy_ranks, mod: variables.courtesy_modifier},
+    Craft: {name: 'Craft', Attribute1: stats.DEX, Attribute2: stats.INT, type: 'Professional', ranks: variables.craft_ranks, mod: variables.craft_modifier}, 
+    Culture: {name: 'Culture', Attribute1: stats.INT, Attribute2: stats.INT, type: 'Professional', ranks: variables.culture_ranks, mod: variables.culture_modifier}, 
+    Demolitions: {name: 'Demolitions', Attribute1: stats.INT, Attribute2: stats.POW, type: 'Professional', ranks: variables.demolitions_ranks, mod: variables.demolitions_modifier}, 
+    Disguise: {name: 'Disguise', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Professional', ranks: variables.disguise_ranks, mod: variables.disguise_modifier}, 
+    Engineering: {name: 'Engineering', Attribute1: stats.INT, Attribute2: stats.INT, type: 'Professional', ranks: variables.engineering_ranks, mod: variables.engineering_modifier}, 
+    Forgery: {name: 'Forgery', Attribute1: stats.DEX, Attribute2: stats.INT, type: 'Professional', ranks: variables.forgery_ranks, mod: variables.forgery_modifier}, 
+    Gambling: {name: 'Gambling', Attribute1: stats.INT, Attribute2: stats.POW, type: 'Professional', ranks: variables.gambling_ranks, mod: variables.gambling_modifier}, 
+    Healing: {name: 'Healing', Attribute1: stats.INT, Attribute2: stats.POW, type: 'Professional', ranks: variables.healing_ranks, mod: variables.healing_modifier}, 
+    Lockpicking: {name: 'Lockpicking', Attribute1: stats.DEX, Attribute2: stats.DEX, type: 'Professional', ranks: variables.lockpicking_ranks, mod: variables.lockpicking_modifier}, 
+    Lore: {name: 'Lore', Attribute1: stats.INT, Attribute2: stats.INT, type: 'Professional', ranks: variables.lore_ranks, mod: variables.lore_modifier}, 
+    Mechanisms: {name: 'Mechanisms', Attribute1: stats.DEX, Attribute2: stats.INT, type: 'Professional', ranks: variables.mechanisms_ranks, mod: variables.mechanisms_modifier}, 
+    Musicianship: {name: 'Musicianship', Attribute1: stats.DEX, Attribute2: stats.CHA, type: 'Professional', ranks: variables.musicianship_ranks, mod: variables.musicianship_modifier},
+    Navigation: {name: 'Navigation', Attribute1: stats.INT, Attribute2: stats.POW, type: 'Professional', ranks: variables.navigation_ranks, mod: variables.navigation_modifier}, 
+    Oratory: {name: 'Oratory', Attribute1: stats.POW, Attribute2: stats.CHA, type: 'Professional', ranks: variables.oratory_ranks, mod: variables.oratory_modifier}, 
+    Pilot: {name: 'Pilot', Attribute1: stats.DEX, Attribute2: stats.POW, type: 'Professional', ranks: variables.pilot_ranks, mod: variables.pilot_modifier}, 
+    Seamanship: {name: 'Seamanship', Attribute1: stats.INT, Attribute2: stats.CON, type: 'Professional', ranks: variables.seamanship_ranks, mod: variables.seamanship_modifier}, 
+    Seduction: {name: 'Seduction', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Professional', ranks: variables.seduction_ranks, mod: variables.seduction_modifier}, 
+    Sleight: {name: 'Sleight', Attribute1: stats.DEX, Attribute2: stats.CHA, type: 'Professional', ranks: variables.seduction_ranks, mod: variables.seduction_modifier}, 
+    Streetwise: {name: 'Streetwise', Attribute1: stats.POW, Attribute2: stats.CHA, type: 'Professional', ranks: variables.streetwise_ranks, mod: variables.streetwise_modifier}, 
+    Survival: {name: 'Survival', Attribute1: stats.CON, Attribute2: stats.POW, type: 'Professional', ranks: variables.survival_ranks, mod: variables.survival_modifier}, 
+    Teach: {name: 'Teach', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Professional', ranks: variables.teach_ranks, mod: variables.teach_modifier}, 
+    Track: {name: 'Track', Attribute1: stats.INT, Attribute2: stats.CON, type: 'Professional', ranks: variables.track_ranks, mod: variables.track_modifier}, 
+    BlankProSkill1: {name: variables.blank_professional_skill_1_name ?? '', Attribute1: null, Attribute2: null, type: 'Professional', ranks: variables.blank_professional_skill_1_ranks, mod: variables.blank_professional_skill_1_modifier}, 
+    BlankProSkill2: {name: variables.blank_professional_skill_2_name ?? '', Attribute1: null, Attribute2: null, type: 'Professional', ranks: variables.blank_professional_skill_2_ranks, mod: variables.blank_professional_skill_2_modifier}, 
+    BlankProSkill3: {name: variables.blank_professional_skill_3_name ?? '', Attribute1: null, Attribute2: null, type: 'Professional', ranks: variables.blank_professional_skill_3_ranks, mod: variables.blank_professional_skill_3_modifier}
+} %}
+{% set languageSkills = {
+    Native_Tongue: {name: 'Native Tongue', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Standard', ranks: variables.native_tongue_ranks, mod: variables.native_tongue_modifier}, 
+    Language1: {name: variables.language_1_name ?? '', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Professional', ranks: variables.language_1_ranks, mod: variables.language_1_modifier}, 
+    Language2: {name: variables.language_2_name ?? '', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Professional', ranks: variables.language_2_ranks, mod: variables.language_2_modifier}, 
+    Language3: {name: variables.language_3_name ?? '', Attribute1: stats.INT, Attribute2: stats.CHA, type: 'Professional', ranks: variables.language_3_ranks, mod: variables.language_3_modifier}
+} %}
+{% set combatSkills = {
+    Unarmed: {name: 'Unarmed', Attribute1: stats.STR, Attribute2: stats.DEX, type: 'Standard', ranks: variables.unarmed_ranks, mod: variables.unarmed_modifier}, 
+    CombatStyle1: {name: variables.combat_style_1_name ?? '', Attribute1: stats.STR, Attribute2: stats.DEX, type: 'Professional', ranks: variables.combat_style_1_ranks, mod: variables.combat_style_1_modifier}, 
+    CombatStyle2: {name: variables.combat_style_2_name ?? '', Attribute1: stats.STR, Attribute2: stats.DEX, type: 'Professional', ranks: variables.combat_style_2_ranks, mod: variables.combat_style_2_modifier}
+} %}
+{% set magicSkills = {
+    Pattern_Control: {name: 'Pattern Control', Attribute1: stats.DEX, Attribute2: stats.INT, type: 'Professional', ranks: variables.pattern_control_ranks, mod: variables.pattern_control_modifier}, 
+    Weaving: {name: 'Weaving', Attribute1: stats.INT, Attribute2: stats.INT, type: 'Professional', ranks: variables.weaving_ranks, mod: variables.weaving_modifier}, 
+    ChannelDomain1: {name: variables.channel_1_name ?? '', Attribute1: stats.CON, Attribute2: stats.POW, type: 'Professional', ranks: variables.channel_1_ranks, mod: variables.channel_1_modifier}, 
+    ChannelDomain2: {name: variables.channel_2_name ?? '', Attribute1: stats.CON, Attribute2: stats.POW, type: 'Professional', ranks: variables.channel_2_ranks, mod: variables.channel_2_modifier}, 
+    ChannelDomain3: {name: variables.channel_3_name ?? '', Attribute1: stats.CON, Attribute2: stats.POW, type: 'Professional', ranks: variables.channel_3_ranks, mod: variables.channel_3_modifier}
+} %}
+{% set allSkills = {resistanceSkills: resistanceSkills, standardSkills: standardSkills, professionalSkills: professionalSkills, languageSkills: languageSkills, combatSkills: combatSkills, magicSkills: magicSkills} %}
+{##}
+{% for skillSetName, skillSet in allSkills %}
+    {% for skillName, skill in skillSet %}
+        {% set total = (skill.Attribute1.Total ?? 0) + (skill.Attribute2.Total ?? 0) + (skill.ranks ?? 0) + (skill.mod ?? 0) %}
+        {% set skill = {total: total} + skill %}
+        {% set allSkills = {(skillSetName): {(skillName): skill} + attribute(allSkills, skillSetName)} + allSkills %}
+    {% endfor %}
+{% endfor %}
+{##}
+{% macro displaySkill(skill) %}
+    {% if skill.name != '' and (skill.ranks > 0 or skill.type == 'Standard') %}
+        {% set Attribute_Display = (skill.Attribute1.name == skill.Attribute2.name) ? (skill.Attribute1.name ~ ' x 2') : (skill.Attribute1.name ~ ' + ' ~ skill.Attribute2.name) %}
+        
+        <div><label>{{skill.name}} ({{ Attribute_Display }}): </label> {{skill.total}}</div>
+    {% endif %}
+{% endmacro displaySkill %}
+{##}
+{# ---------- Magic ---------- #}
+{% set echelon = 0 %}
+{% for skillName, skill in allSkills.magicSkills %}
+    {% if skillName starts with 'ChannelDomain' and skill.name != '' %}
+        {% set echelon = echelon + 1 %}
+    {% endif %}
+{% endfor %}
+{# make sure to update attributes with echelon bonuses #}
+{% set echelon_hp = 5 * echelon %}
+{% set echelon_mp = 3 * echelon %}
+{% set healing_rate_total = healing_rate_total + echelon %}
+{% set mp_regen_rate = mp_regen_rate + echelon %}
+{% set echelon_action_points = echelon %}
+{% set mp_total = mp_total + echelon_mp %}
+{% set mp_current = mp_total - magic_points_used %}
+{% set action_point_total = action_point_total + echelon_action_points %}
+{##}
+{# ---------- Hit Locations ---------- #}
+{% set hp_mod_total = echelon_hp + hp_mod %}
+{% set hitLocations = {} %}
+{% if variables.species == 'Azar' %}
+    {% set hitLocations = {
+        rightLeg: { name: 'Right Leg', roll: '1-3', maxHP: (0 + hp_mod_total), damage: (variables.right_leg_damage ?? 0), naturalArmorAP: 4 + (variables.right_leg_natural_armor_modifier), armorAP: (variables.right_leg_armor_ap ?? 0), armorENC: (variables.right_leg_armor_enc ?? 0), notes: (variables.right_leg_notes ?? '') },
+        leftLeg: { name: 'Left Leg', roll: '4-6', maxHP: (0 + hp_mod_total), damage: (variables.left_leg_damage ?? 0), naturalArmorAP: 4 + (variables.left_leg_natural_armor_modifier), armorAP: (variables.left_leg_armor_ap ?? 0), armorENC: (variables.left_leg_armor_enc ?? 0), notes: (variables.left_leg_notes ?? '') },
+        abdomen: { name: 'Abdomen', roll: '7-9', maxHP: (1 + hp_mod_total), damage: (variables.abdomen_damage ?? 0), naturalArmorAP: 4 + (variables.abdomen_natural_armor_modifier), armorAP: (variables.abdomen_armor_ap ?? 0), armorENC: (variables.abdomen_armor_enc ?? 0), notes: (variables.abdomen_notes ?? '') },
+        chest: { name: 'Chest', roll: '10-12', maxHP: (1 + hp_mod_total), damage: (variables.chest_damage ?? 0), naturalArmorAP: 4 + (variables.chest_natural_armor_modifier), armorAP: (variables.chest_armor_ap ?? 0), armorENC: (variables.chest_armor_enc ?? 0), notes: (variables.chest_notes ?? '') },
+        rightArm: { name: 'Right Arm', roll: '13-15', maxHP: (-1 + hp_mod_total), damage: (variables.right_arm_damage ?? 0), naturalArmorAP: 4 + (variables.right_arm_natural_armor_modifier), armorAP: (variables.right_arm_armor_ap ?? 0), armorENC: (variables.right_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        leftArm: { name: 'Left Arm', roll: '16-18', maxHP: (-1 + hp_mod_total), damage: (variables.left_arm_damage ?? 0), naturalArmorAP: 4 + (variables.left_arm_natural_armor_modifier), armorAP: (variables.left_arm_armor_ap ?? 0), armorENC: (variables.left_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        head: { name: 'Head', roll: '19-20', maxHP: (0 + hp_mod_total), damage: (variables.head_damage ?? 0), naturalArmorAP: 2 + (variables.head_natural_armor_modifier), armorAP: (variables.head_armor_ap ?? 0), armorENC: (variables.head_armor_enc ?? 0), notes: (variables.head_notes ?? '') }
+    } %}
+{% elseif variables.species == 'Estra' %}
+    {% set hitLocations = {
+        rightLeg: { name: 'Right Leg', roll: '1-3', maxHP: (0 + hp_mod_total), damage: (variables.right_leg_damage ?? 0), naturalArmorAP: 4 + (variables.right_leg_natural_armor_modifier), armorAP: (variables.right_leg_armor_ap ?? 0), armorENC: (variables.right_leg_armor_enc ?? 0), notes: (variables.right_leg_notes ?? '') },
+        leftLeg: { name: 'Left Leg', roll: '4-6', maxHP: (0 + hp_mod_total), damage: (variables.left_leg_damage ?? 0), naturalArmorAP: 4 + (variables.left_leg_natural_armor_modifier), armorAP: (variables.left_leg_armor_ap ?? 0), armorENC: (variables.left_leg_armor_enc ?? 0), notes: (variables.left_leg_notes ?? '') },
+        abdomen: { name: 'Abdomen', roll: '7-9', maxHP: (1 + hp_mod_total), damage: (variables.abdomen_damage ?? 0), naturalArmorAP: 4 + (variables.abdomen_natural_armor_modifier), armorAP: (variables.abdomen_armor_ap ?? 0), armorENC: (variables.abdomen_armor_enc ?? 0), notes: (variables.abdomen_notes ?? '') },
+        chest: { name: 'Chest', roll: '10-12', maxHP: (1 + hp_mod_total), damage: (variables.chest_damage ?? 0), naturalArmorAP: 4 + (variables.chest_natural_armor_modifier), armorAP: (variables.chest_armor_ap ?? 0), armorENC: (variables.chest_armor_enc ?? 0), notes: (variables.chest_notes ?? '') },
+        rightArm: { name: 'Right Arm', roll: '13-15', maxHP: (-1 + hp_mod_total), damage: (variables.right_arm_damage ?? 0), naturalArmorAP: 4 + (variables.right_arm_natural_armor_modifier), armorAP: (variables.right_arm_armor_ap ?? 0), armorENC: (variables.right_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        leftArm: { name: 'Left Arm', roll: '16-18', maxHP: (-1 + hp_mod_total), damage: (variables.left_arm_damage ?? 0), naturalArmorAP: 4 + (variables.left_arm_natural_armor_modifier), armorAP: (variables.left_arm_armor_ap ?? 0), armorENC: (variables.left_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        head: { name: 'Head', roll: '19-20', maxHP: (0 + hp_mod_total), damage: (variables.head_damage ?? 0), naturalArmorAP: 2 + (variables.head_natural_armor_modifier), armorAP: (variables.head_armor_ap ?? 0), armorENC: (variables.head_armor_enc ?? 0), notes: (variables.head_notes ?? '') }
+    } %}
+{% elseif variables.species == 'Jull' %}
+    {% set hitLocations = {
+        rightLeg: { name: 'Right Leg', roll: '1-3', maxHP: (0 + hp_mod_total), damage: (variables.right_leg_damage ?? 0), naturalArmorAP: 4 + (variables.right_leg_natural_armor_modifier), armorAP: (variables.right_leg_armor_ap ?? 0), armorENC: (variables.right_leg_armor_enc ?? 0), notes: (variables.right_leg_notes ?? '') },
+        leftLeg: { name: 'Left Leg', roll: '4-6', maxHP: (0 + hp_mod_total), damage: (variables.left_leg_damage ?? 0), naturalArmorAP: 4 + (variables.left_leg_natural_armor_modifier), armorAP: (variables.left_leg_armor_ap ?? 0), armorENC: (variables.left_leg_armor_enc ?? 0), notes: (variables.left_leg_notes ?? '') },
+        abdomen: { name: 'Abdomen', roll: '7-9', maxHP: (1 + hp_mod_total), damage: (variables.abdomen_damage ?? 0), naturalArmorAP: 4 + (variables.abdomen_natural_armor_modifier), armorAP: (variables.abdomen_armor_ap ?? 0), armorENC: (variables.abdomen_armor_enc ?? 0), notes: (variables.abdomen_notes ?? '') },
+        chest: { name: 'Chest', roll: '10-12', maxHP: (1 + hp_mod_total), damage: (variables.chest_damage ?? 0), naturalArmorAP: 4 + (variables.chest_natural_armor_modifier), armorAP: (variables.chest_armor_ap ?? 0), armorENC: (variables.chest_armor_enc ?? 0), notes: (variables.chest_notes ?? '') },
+        rightArm: { name: 'Right Arm', roll: '13-15', maxHP: (-1 + hp_mod_total), damage: (variables.right_arm_damage ?? 0), naturalArmorAP: 4 + (variables.right_arm_natural_armor_modifier), armorAP: (variables.right_arm_armor_ap ?? 0), armorENC: (variables.right_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        leftArm: { name: 'Left Arm', roll: '16-18', maxHP: (-1 + hp_mod_total), damage: (variables.left_arm_damage ?? 0), naturalArmorAP: 4 + (variables.left_arm_natural_armor_modifier), armorAP: (variables.left_arm_armor_ap ?? 0), armorENC: (variables.left_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        head: { name: 'Head', roll: '19-20', maxHP: (0 + hp_mod_total), damage: (variables.head_damage ?? 0), naturalArmorAP: 2 + (variables.head_natural_armor_modifier), armorAP: (variables.head_armor_ap ?? 0), armorENC: (variables.head_armor_enc ?? 0), notes: (variables.head_notes ?? '') }
+    } %}
+{% elseif variables.species == 'Nath' %}
+    {% set hitLocations = {
+        rightLeg: { name: 'Right Leg', roll: '1-3', maxHP: (0 + hp_mod_total), damage: (variables.right_leg_damage ?? 0), naturalArmorAP: 4 + (variables.right_leg_natural_armor_modifier), armorAP: (variables.right_leg_armor_ap ?? 0), armorENC: (variables.right_leg_armor_enc ?? 0), notes: (variables.right_leg_notes ?? '') },
+        leftLeg: { name: 'Left Leg', roll: '4-6', maxHP: (0 + hp_mod_total), damage: (variables.left_leg_damage ?? 0), naturalArmorAP: 4 + (variables.left_leg_natural_armor_modifier), armorAP: (variables.left_leg_armor_ap ?? 0), armorENC: (variables.left_leg_armor_enc ?? 0), notes: (variables.left_leg_notes ?? '') },
+        abdomen: { name: 'Abdomen', roll: '7-9', maxHP: (1 + hp_mod_total), damage: (variables.abdomen_damage ?? 0), naturalArmorAP: 4 + (variables.abdomen_natural_armor_modifier), armorAP: (variables.abdomen_armor_ap ?? 0), armorENC: (variables.abdomen_armor_enc ?? 0), notes: (variables.abdomen_notes ?? '') },
+        chest: { name: 'Chest', roll: '10-12', maxHP: (1 + hp_mod_total), damage: (variables.chest_damage ?? 0), naturalArmorAP: 4 + (variables.chest_natural_armor_modifier), armorAP: (variables.chest_armor_ap ?? 0), armorENC: (variables.chest_armor_enc ?? 0), notes: (variables.chest_notes ?? '') },
+        rightArm: { name: 'Right Arm', roll: '13-15', maxHP: (-1 + hp_mod_total), damage: (variables.right_arm_damage ?? 0), naturalArmorAP: 4 + (variables.right_arm_natural_armor_modifier), armorAP: (variables.right_arm_armor_ap ?? 0), armorENC: (variables.right_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        leftArm: { name: 'Left Arm', roll: '16-18', maxHP: (-1 + hp_mod_total), damage: (variables.left_arm_damage ?? 0), naturalArmorAP: 4 + (variables.left_arm_natural_armor_modifier), armorAP: (variables.left_arm_armor_ap ?? 0), armorENC: (variables.left_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        head: { name: 'Head', roll: '19-20', maxHP: (0 + hp_mod_total), damage: (variables.head_damage ?? 0), naturalArmorAP: 2 + (variables.head_natural_armor_modifier), armorAP: (variables.head_armor_ap ?? 0), armorENC: (variables.head_armor_enc ?? 0), notes: (variables.head_notes ?? '') }
+    } %}
+{% elseif variables.species == 'Mujab' %}
+    {% set hitLocations = {
+        rightLeg: { name: 'Right Leg', roll: '1-3', maxHP: (0 + hp_mod_total), damage: (variables.right_leg_damage ?? 0), naturalArmorAP: 4 + (variables.right_leg_natural_armor_modifier), armorAP: (variables.right_leg_armor_ap ?? 0), armorENC: (variables.right_leg_armor_enc ?? 0), notes: (variables.right_leg_notes ?? '') },
+        leftLeg: { name: 'Left Leg', roll: '4-6', maxHP: (0 + hp_mod_total), damage: (variables.left_leg_damage ?? 0), naturalArmorAP: 4 + (variables.left_leg_natural_armor_modifier), armorAP: (variables.left_leg_armor_ap ?? 0), armorENC: (variables.left_leg_armor_enc ?? 0), notes: (variables.left_leg_notes ?? '') },
+        abdomen: { name: 'Abdomen', roll: '7-9', maxHP: (1 + hp_mod_total), damage: (variables.abdomen_damage ?? 0), naturalArmorAP: 4 + (variables.abdomen_natural_armor_modifier), armorAP: (variables.abdomen_armor_ap ?? 0), armorENC: (variables.abdomen_armor_enc ?? 0), notes: (variables.abdomen_notes ?? '') },
+        chest: { name: 'Chest', roll: '10-12', maxHP: (1 + hp_mod_total), damage: (variables.chest_damage ?? 0), naturalArmorAP: 4 + (variables.chest_natural_armor_modifier), armorAP: (variables.chest_armor_ap ?? 0), armorENC: (variables.chest_armor_enc ?? 0), notes: (variables.chest_notes ?? '') },
+        rightArm: { name: 'Right Arm', roll: '13-15', maxHP: (-1 + hp_mod_total), damage: (variables.right_arm_damage ?? 0), naturalArmorAP: 4 + (variables.right_arm_natural_armor_modifier), armorAP: (variables.right_arm_armor_ap ?? 0), armorENC: (variables.right_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        leftArm: { name: 'Left Arm', roll: '16-18', maxHP: (-1 + hp_mod_total), damage: (variables.left_arm_damage ?? 0), naturalArmorAP: 4 + (variables.left_arm_natural_armor_modifier), armorAP: (variables.left_arm_armor_ap ?? 0), armorENC: (variables.left_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        head: { name: 'Head', roll: '19-20', maxHP: (0 + hp_mod_total), damage: (variables.head_damage ?? 0), naturalArmorAP: 2 + (variables.head_natural_armor_modifier), armorAP: (variables.head_armor_ap ?? 0), armorENC: (variables.head_armor_enc ?? 0), notes: (variables.head_notes ?? '') }
+    } %}
+{% elseif variables.species == 'T\'ha' %}
+    {% set hitLocations = {
+        rightLeg: { name: 'Right Leg', roll: '1-3', maxHP: (0 + hp_mod_total), damage: (variables.right_leg_damage ?? 0), naturalArmorAP: 4 + (variables.right_leg_natural_armor_modifier), armorAP: (variables.right_leg_armor_ap ?? 0), armorENC: (variables.right_leg_armor_enc ?? 0), notes: (variables.right_leg_notes ?? '') },
+        leftLeg: { name: 'Left Leg', roll: '4-6', maxHP: (0 + hp_mod_total), damage: (variables.left_leg_damage ?? 0), naturalArmorAP: 4 + (variables.left_leg_natural_armor_modifier), armorAP: (variables.left_leg_armor_ap ?? 0), armorENC: (variables.left_leg_armor_enc ?? 0), notes: (variables.left_leg_notes ?? '') },
+        abdomen: { name: 'Abdomen', roll: '7-9', maxHP: (1 + hp_mod_total), damage: (variables.abdomen_damage ?? 0), naturalArmorAP: 4 + (variables.abdomen_natural_armor_modifier), armorAP: (variables.abdomen_armor_ap ?? 0), armorENC: (variables.abdomen_armor_enc ?? 0), notes: (variables.abdomen_notes ?? '') },
+        chest: { name: 'Chest', roll: '10-12', maxHP: (1 + hp_mod_total), damage: (variables.chest_damage ?? 0), naturalArmorAP: 4 + (variables.chest_natural_armor_modifier), armorAP: (variables.chest_armor_ap ?? 0), armorENC: (variables.chest_armor_enc ?? 0), notes: (variables.chest_notes ?? '') },
+        rightArm: { name: 'Right Arm', roll: '13-15', maxHP: (-1 + hp_mod_total), damage: (variables.right_arm_damage ?? 0), naturalArmorAP: 4 + (variables.right_arm_natural_armor_modifier), armorAP: (variables.right_arm_armor_ap ?? 0), armorENC: (variables.right_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        leftArm: { name: 'Left Arm', roll: '16-18', maxHP: (-1 + hp_mod_total), damage: (variables.left_arm_damage ?? 0), naturalArmorAP: 4 + (variables.left_arm_natural_armor_modifier), armorAP: (variables.left_arm_armor_ap ?? 0), armorENC: (variables.left_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        head: { name: 'Head', roll: '19-20', maxHP: (0 + hp_mod_total), damage: (variables.head_damage ?? 0), naturalArmorAP: 2 + (variables.head_natural_armor_modifier), armorAP: (variables.head_armor_ap ?? 0), armorENC: (variables.head_armor_enc ?? 0), notes: (variables.head_notes ?? '') }
+    } %}
+{% elseif variables.species == 'Vecora' %}
+    {% set hitLocations = {
+        rightLeg: { name: 'Right Leg', roll: '1-3', maxHP: (0 + hp_mod_total), damage: (variables.right_leg_damage ?? 0), naturalArmorAP: 4 + (variables.right_leg_natural_armor_modifier), armorAP: (variables.right_leg_armor_ap ?? 0), armorENC: (variables.right_leg_armor_enc ?? 0), notes: (variables.right_leg_notes ?? '') },
+        leftLeg: { name: 'Left Leg', roll: '4-6', maxHP: (0 + hp_mod_total), damage: (variables.left_leg_damage ?? 0), naturalArmorAP: 4 + (variables.left_leg_natural_armor_modifier), armorAP: (variables.left_leg_armor_ap ?? 0), armorENC: (variables.left_leg_armor_enc ?? 0), notes: (variables.left_leg_notes ?? '') },
+        abdomen: { name: 'Abdomen', roll: '7-9', maxHP: (1 + hp_mod_total), damage: (variables.abdomen_damage ?? 0), naturalArmorAP: 4 + (variables.abdomen_natural_armor_modifier), armorAP: (variables.abdomen_armor_ap ?? 0), armorENC: (variables.abdomen_armor_enc ?? 0), notes: (variables.abdomen_notes ?? '') },
+        chest: { name: 'Chest', roll: '10-12', maxHP: (1 + hp_mod_total), damage: (variables.chest_damage ?? 0), naturalArmorAP: 4 + (variables.chest_natural_armor_modifier), armorAP: (variables.chest_armor_ap ?? 0), armorENC: (variables.chest_armor_enc ?? 0), notes: (variables.chest_notes ?? '') },
+        rightArm: { name: 'Right Arm', roll: '13-15', maxHP: (-1 + hp_mod_total), damage: (variables.right_arm_damage ?? 0), naturalArmorAP: 4 + (variables.right_arm_natural_armor_modifier), armorAP: (variables.right_arm_armor_ap ?? 0), armorENC: (variables.right_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        leftArm: { name: 'Left Arm', roll: '16-18', maxHP: (-1 + hp_mod_total), damage: (variables.left_arm_damage ?? 0), naturalArmorAP: 4 + (variables.left_arm_natural_armor_modifier), armorAP: (variables.left_arm_armor_ap ?? 0), armorENC: (variables.left_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        head: { name: 'Head', roll: '19-20', maxHP: (0 + hp_mod_total), damage: (variables.head_damage ?? 0), naturalArmorAP: 2 + (variables.head_natural_armor_modifier), armorAP: (variables.head_armor_ap ?? 0), armorENC: (variables.head_armor_enc ?? 0), notes: (variables.head_notes ?? '') }
+    } %}
+{% else %}
+    {% set hitLocations = {
+        rightLeg: { name: 'Right Leg', roll: '1-3', maxHP: (0 + hp_mod_total), damage: (variables.right_leg_damage ?? 0), naturalArmorAP: 4 + (variables.right_leg_natural_armor_modifier), armorAP: (variables.right_leg_armor_ap ?? 0), armorENC: (variables.right_leg_armor_enc ?? 0), notes: (variables.right_leg_notes ?? '') },
+        leftLeg: { name: 'Left Leg', roll: '4-6', maxHP: (0 + hp_mod_total), damage: (variables.left_leg_damage ?? 0), naturalArmorAP: 4 + (variables.left_leg_natural_armor_modifier), armorAP: (variables.left_leg_armor_ap ?? 0), armorENC: (variables.left_leg_armor_enc ?? 0), notes: (variables.left_leg_notes ?? '') },
+        abdomen: { name: 'Abdomen', roll: '7-9', maxHP: (1 + hp_mod_total), damage: (variables.abdomen_damage ?? 0), naturalArmorAP: 4 + (variables.abdomen_natural_armor_modifier), armorAP: (variables.abdomen_armor_ap ?? 0), armorENC: (variables.abdomen_armor_enc ?? 0), notes: (variables.abdomen_notes ?? '') },
+        chest: { name: 'Chest', roll: '10-12', maxHP: (1 + hp_mod_total), damage: (variables.chest_damage ?? 0), naturalArmorAP: 4 + (variables.chest_natural_armor_modifier), armorAP: (variables.chest_armor_ap ?? 0), armorENC: (variables.chest_armor_enc ?? 0), notes: (variables.chest_notes ?? '') },
+        rightArm: { name: 'Right Arm', roll: '13-15', maxHP: (-1 + hp_mod_total), damage: (variables.right_arm_damage ?? 0), naturalArmorAP: 4 + (variables.right_arm_natural_armor_modifier), armorAP: (variables.right_arm_armor_ap ?? 0), armorENC: (variables.right_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        leftArm: { name: 'Left Arm', roll: '16-18', maxHP: (-1 + hp_mod_total), damage: (variables.left_arm_damage ?? 0), naturalArmorAP: 4 + (variables.left_arm_natural_armor_modifier), armorAP: (variables.left_arm_armor_ap ?? 0), armorENC: (variables.left_arm_armor_enc ?? 0), notes: (variables.right_arm_notes ?? '') },
+        head: { name: 'Head', roll: '19-20', maxHP: (0 + hp_mod_total), damage: (variables.head_damage ?? 0), naturalArmorAP: 2 + (variables.head_natural_armor_modifier), armorAP: (variables.head_armor_ap ?? 0), armorENC: (variables.head_armor_enc ?? 0), notes: (variables.head_notes ?? '') }
+    } %}
+{% endif %}
+
+{% set armor_penalty = 0 %}
+{% for locationName, location in hitLocations %}
+    {% set armor_penalty = armor_penalty + location.armorENC|default(0) %}
+{% endfor %}
+{% set armor_penalty = (armor_penalty / 5.0)|round(0, 'ceil') %}
+{% set initiative_total = initiative_total - armor_penalty %}
+{##}
+{# ---------- Movement ---------- #}
+{% set move_rate_total = 0 %}
+{% set fly_rate_total = 0 %}
+{% set species_vert_run_jump_bonus = 0 %}
+{% set species_horiz_run_jump_bonus = 0 %}
+{% set species_vert_stand_jump_bonus = 0 %}
+{% set species_horiz_stand_jump_bonus = 0 %}
+{% if variables.species == 'Azar' %}
+    {% set move_rate_total = 5 %}
+{% elseif variables.species == 'Estra' %}
+    {% set move_rate_total = 6 %}
+{% elseif variables.species == 'Jull' %}
+    {% set move_rate_total = 6 %}
+{% elseif variables.species == 'Nath' %}
+    {% set move_rate_total = 5 %}
+    {% set species_vert_run_jump_bonus = 6 %}
+    {% set species_horiz_run_jump_bonus = 12 %}
+    {% set species_vert_stand_jump_bonus = 3 %}
+    {% set species_horiz_stand_jump_bonus = 6 %}
+{% elseif variables.species == 'Mujab' %}
+    {% set move_rate_total = 9 %}
+{% elseif variables.species == 'T\'ha' %}
+    {% set move_rate_total = 5 %}
+    {% set fly_rate_total = 7 %}
+{% elseif variables.species == 'Vecora' %}
+    {% set move_rate_total = 6 %}
+{% else %}
+    {% set move_rate_total = 0 %}
+{% endif %}
+{% set move_rate_total = move_rate_total + (variables.base_movement_rate_modifier ?? 0) %}
+{% set walk_speed_total = move_rate_total + (variables.walk_speed_modifier ?? 0) %}
+{% set run_speed_total = ((move_rate_total + (allSkills.standardSkills.Athletics.total / 50)|round(0, 'floor')) * 3) + (variables.run_speed_modifier ?? 0) - armor_penalty %}
+{% set sprint_speed_total = ((move_rate_total + (allSkills.standardSkills.Athletics.total / 25)|round(0, 'floor')) * 5) + (variables.sprint_speed_modifier ?? 0) - armor_penalty %}
+{% set climb_rough_speed_total = move_rate_total + (variables.climb_speed_modifier ?? 0) - (armor_penalty / 2)|round(0, 'floor') %}
+{% set climb_steep_speed_total = move_rate_total + (variables.climb_speed_modifier ?? 0) - armor_penalty %}
+{% set climb_sheer_speed_total = move_rate_total + (variables.climb_speed_modifier ?? 0) - (armor_penalty * 2) %}
+{% set jump_horiz_stand_total = (((2 * (height_total / 100.0)|round(2)) + (allSkills.standardSkills.Athletics.total / 20)|round(0, 'floor')) / 2.0)|round(2) + species_horiz_stand_jump_bonus %}
+{% set jump_vert_stand_total = (((0.5 * (height_total / 100.0)|round(2)) + ((allSkills.standardSkills.Athletics.total / 20) * 0.2)|round(0, 'floor') - (armor_penalty / 2)|round(0, 'floor')) / 2.0)|round(2) + species_vert_stand_jump_bonus %}
+{% set jump_horiz_run_total = (2 * (height_total / 100.0)|round(2)) + (allSkills.standardSkills.Athletics.total / 20)|round(0, 'floor') - (armor_penalty / 2)|round(0, 'floor') + species_horiz_run_jump_bonus %}
+{% set jump_vert_run_total = (0.5 * (height_total / 100.0)|round(2)) + ((allSkills.standardSkills.Athletics.total / 20) * 0.2)|round(0, 'floor') - (armor_penalty / 2)|round(0, 'floor') + species_vert_run_jump_bonus %}
+{##}
+{##}
+{##}
+{##}
+{##}
+<div id="sheet">
+    <div><h1>{{ variables.name }}</h1></div>
+    <div>[img:{{variables.character_image_id}}]</div>
+    <div><label>Species:</label> {% if variables.species is defined %} {{ variables.species }} {% endif %}</div>
+    <div class="column-container">
+        <div><label>Culture: </label> {% if variables.culture is defined %} {{ variables.culture }} {% endif %}</div>
+        <div><label>Social Class: </label> {% if variables.social_class is defined %} {{ variables.social_class }} {% endif %}</div>
+        <div><label>Career: </label> {% if variables.career is defined %} {{ variables.career }} {% endif %}</div>
+        <div><label>Age: </label> {% if variables.age is defined %} {{ variables.age }} {% endif %}</div>
+        <div><label>Height: </label> {{ height_total }} cm</div>
+        <div><label>Body Type: </label> {% if variables.body_type is defined %} {{ variables.body_type }} {% endif %}</div>
+        <div><label>Weight: </label> {{ weight_total }} kg</div>
+    </div>
+    <div id="characteristics">
+        <div><h2>Characteristics</h2></div>
+        <div><label>STR:</label> {{ str_total }}</div>
+        <div><label>DEX:</label> {{ dex_total }}</div>
+        <div><label>CON:</label> {{ con_total }}</div>
+        <div><label>SIZ:</label> {{ siz_total }}</div>
+        <div><label>INT:</label> {{ int_total }}</div>
+        <div><label>POW:</label> {{ pow_total }}</div>
+        <div><label>CHA:</label> {{ cha_total }}</div>
+    </div>
+    <div id="attributes">
+        <div><h2>Attributes</h2></div>
+        <div><label>Action Points: </label> {{ action_point_total }}</div>
+        <div><label>Initiative Bonus: </label> {{ initiative_total }}</div>
+        <div><label>Damage Modifier: </label> {{ damage_mod_base }} {% if variables.damage_modifier_bonuspenalty is defined %} {{ variables.damage_modifier_bonuspenalty }} {% endif %}</div>
+        <div><label>Healing Rate: </label> {{ healing_rate_total }}</div>
+        <div><label>Experience Modifier: </label> {{ xp_mod_total }}</div>
+        <div><label>Luck Points: </label> {{ luck_current }} / {{ luck_total }}</div>
+        <div><label>Magic Points: </label> {{ mp_current }} / {{ mp_total }}</div>
+        <div><label>MP Recovery Rate: </label> {{ mp_regen_rate }} / hour</div>
+    </div>
+    <div id="movement">
+        <div><h2>Movement</h2></div>
+        <div><label>Walk: </label> {{ walk_speed_total }}</div>
+        <div><label>Run: </label> {{ run_speed_total }}</div>
+        <div><label>Sprint: </label> {{ sprint_speed_total }}</div>
+        <div><label>Vertical Jump: </label> {{ jump_vert_stand_total }} (Standing), {{ jump_vert_run_total }} (Running)</div>
+        <div><label>Horizontal Jump: </label> {{ jump_horiz_stand_total }} (Standing), {{ jump_horiz_run_total }} (Running)</div>
+        <div><label>Climb: </label> {{ climb_rough_speed_total }} (Rough), {{ climb_steep_speed_total }} (Steep), {{ climb_sheer_speed_total }} (Sheer)</div>
+        <div><label>Swim: </label> </div>
+        <div><label>Fly: </label> </div>
+    </div>
+    <div id="skills">
+        <div><h2>Skills</h2></div>
+        <div id="skills_resistances">
+            <div><h3>Resistances</h3></div>
+            {% for skillName, skill in attribute(allSkills, 'resistanceSkills')|reverse %}
+                {{ sheet.displaySkill(skill) }}
+            {% endfor %}
+        </div>
+        <div id="skills_standard">
+            <div><h3>Standard</h3></div>
+            {% for skillName, skill in attribute(allSkills, 'standardSkills')|reverse %}
+                {{ sheet.displaySkill(skill) }}
+            {% endfor %}
+        </div>
+        <div id="skills_professional">
+            <div><h3>Professional</h3></div>
+            {% for skillName, skill in attribute(allSkills, 'professionalSkills')|reverse %}
+                {{ sheet.displaySkill(skill) }}
+            {% endfor %}
+        </div>
+        <div id="skills_languages">
+            <div><h3>Languages</h3></div>
+            {% for skillName, skill in attribute(allSkills, 'languageSkills')|reverse %}
+                {{ sheet.displaySkill(skill) }}
+            {% endfor %}
+        </div>
+        <div id="skills_combat">
+            <div><h3>Combat Styles</h3></div>
+            {% for skillName, skill in attribute(allSkills, 'combatSkills')|reverse %}
+                {{ sheet.displaySkill(skill) }}
+            {% endfor %}
+        </div>
+        <div id="skills_magic">
+            <div><h3>Magic</h3></div>
+            {% for skillName, skill in attribute(allSkills, 'magicSkills')|reverse %}
+                {{ sheet.displaySkill(skill) }}
+            {% endfor %}
+        </div>
+    </div>
+    <div id="hit_locations">
+        <h2>Hit Locations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll</th><th>Location</th><th>HP</th><th>AP</th><th>Notes</th>
+                </tr>
+            </thead>
+            {% for locationName, location in hitLocations %}
+                <tr>
+                    <td>{{location.roll}}</td><td>{{location.name}}</td><td>{{location.maxHP - location.damage}}/{{location.maxHP}}</td><td>{{location.naturalArmorAP}} (Natural), {{location.armorAP}} (Worn)</td><td>{{location.notes}}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div id="weapons">
+
+    </div>
+</div>

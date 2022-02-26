@@ -1,0 +1,732 @@
+fields:
+  #Base Character Info
+  charachter_image:
+    input: integer
+    label: "Character Image Id"
+  species:
+    input: select
+    label: "Species"
+    options: 
+      Azar: Azar
+      Estra: Estra
+      Jull: Jull
+      Mujab: Mujab
+      Nath: Nath
+      Amnathkal: Amnathkal
+      T'ha: T'ha
+      Vecora: Vecora
+  career:
+    input: text
+    label: "Career"
+  culture:
+    input: text
+    label: "Culture"
+  social_class:
+    input: text
+    label: "Social Class"
+  age:
+    input: integer
+    label: "Age"
+  body_type:
+    input: select
+    label: "Body Type"
+    options:
+      Lithe: "Lithe"
+      Medium: "Medium"
+      Heavy: "Heavy"
+
+  #Characteristics
+  str_base:
+    input: integer
+    label: "STR (Base)"
+  str_mod:
+    input: integer
+    label: "STR (Modifier)"
+  dex_base:
+    input: integer
+    label: "DEX (Base)"
+  dex_mod:
+    input: integer
+    label: "DEX (Modifier)"
+  con_base:
+    input: integer
+    label: "CON (Base)"
+  con_mod:
+    input: integer
+    label: "CON (Modifier)"
+  siz_base:
+    input: integer
+    label: "SIZ (Base)"
+  siz_mod:
+    input: integer
+    label: "SIZ (Modifier)"
+  int_base:
+    input: integer
+    label: "INT (Base)"
+  int_mod:
+    input: integer
+    label: "INT (Modifier)"
+  pow_base:
+    input: integer
+    label: "POW (Base)"
+  pow_mod:
+    input: integer
+    label: "POW (Modifier)"
+  cha_base:
+    input: integer
+    label: "CHA (Base)"
+  cha_mod:
+    input: integer
+    label: "CHA (Modifier)"
+
+  #Attributes
+  action_point_mod:
+    input: integer
+    label: "Action Points Modifier"
+  damage_modifier_mod:
+    input: text
+    label: "Damage Modifier Bonus/Penalty"
+  healing_rate_mod:
+    input: integer
+    label: "Healing Rate Modifier"
+  initiative_bonus_mod:
+    input: integer
+    label: "Initiative Bonus Modifier"
+  magic_points_mod:
+    input: integer
+    label: "Magic Points Modifier"
+  magic_points_used:
+    input: integer
+    label: "Magic Points Used"
+  magic_point_recovery_mod:
+    input: integer
+    label: "Magic Point Recovery Modifier"
+  luck_points_mod:
+    input: integer
+    label: "Luck Points Modifier"
+  luck_points_used:
+    input: integer
+    label: "Luck Points Used"
+  
+  #Experience
+  experience_points_available:
+    input: integer
+    label: "Experience Points Available"
+
+  #Movement
+  base_movement_mod:
+    input: integer
+    label: "Base Movement Rate Modifier"
+  walk_mod:
+    input: integer
+    label: "Walk Speed Modifier"
+  run_mod:
+    input: integer
+    label: "Run Speed Modifier"
+  sprint_mod:
+    input: integer
+    label: "Sprint Speed Modifier"
+  jump_vert_mod:
+    input: integer
+    label: "Vertical Jump Modifier"
+  jump_horiz_stand_mod:
+    input: integer
+    label: "Horizontal Jump Modifier"
+  climb_mod:
+    input: integer
+    label: "Climb Speed Modifier"
+  swim_mod:
+    input: integer
+    label: "Swim Speed Modifier"
+  fly_mod:
+    input: integer
+    label: "Fly Speed Modifier"
+
+  # ------------- Skills -------------
+  # --- Resistance ---
+  Brawn_Ranks:
+    input: integer
+    label: "Brawn Ranks"
+  Brawn_Mod:
+    input: integer
+    label: "Brawn Modifier"
+  #
+  Endurance_Ranks:
+    input: integer
+    label: "Endurance Ranks"
+  Endurance_Mod:
+    input: integer
+    label: "Endurance Modifier"
+  #
+  Evade_Ranks:
+    input: integer
+    label: "Evade Ranks"
+  Evade_Mod:
+    input: integer
+    label: "Evade Modifier"
+  #
+  Willpower_Ranks:
+    input: integer
+    label: "Willpower Ranks"
+  Willpower_Mod:
+    input: integer
+    label: "Willpower Modifier"
+  
+  # --- Standard ---
+  Athletics_Ranks:
+    input: integer
+    label: "Athletics Ranks"
+  Athletics_Mod:
+    input: integer
+    label: "Athletics Modifier"
+  #
+  Boating_Ranks:
+    input: integer
+    label: "Boating Ranks"
+  Boating_Mod:
+    input: integer
+    label: "Boating Modifier"
+  #
+  Conceal_Ranks:
+    input: integer
+    label: "Conceal Ranks"
+  Conceal_Mod:
+    input: integer
+    label: "Conceal Modifier"
+  #
+  Customs_Ranks:
+    input: integer
+    label: "Customs Ranks"
+  Customs_Mod:
+    input: integer
+    label: "Customs Modifier"
+  #
+  Dance_Ranks:
+    input: integer
+    label: "Dance Ranks"
+  Dance_Mod:
+    input: integer
+    label: "Dance Modifier"
+  #
+  Deceit_Ranks:
+    input: integer
+    label: "Deceit Ranks"
+  Deceit_Mod:
+    input: integer
+    label: "Deceit Modifier"
+  #
+  Drive_Ranks:
+    input: integer
+    label: "Drive Ranks"
+  Drive_Mod:
+    input: integer
+    label: "Drive Modifier"
+  #
+  First_Aid_Ranks:
+    input: integer
+    label: "First Aid Ranks"
+  First_Aid_Mod:
+    input: integer
+    label: "First Aid Modifier"
+  #
+  Influence_Ranks:
+    input: integer
+    label: "Influence Ranks"
+  Influence_Mod:
+    input: integer
+    label: "Influence Modifier"
+  #
+  Insight_Ranks:
+    input: integer
+    label: "Insight Ranks"
+  Insight_Mod:
+    input: integer
+    label: "Insight Modifier"
+  #
+  Locale_Ranks:
+    input: integer
+    label: "Locale Ranks"
+  Locale_Mod:
+    input: integer
+    label: "Locale Modifier"
+  #
+  Perception_Ranks:
+    input: integer
+    label: "Perception Ranks"
+  Perception_Mod:
+    input: integer
+    label: "Perception Modifier"
+  #
+  Ride_Ranks:
+    input: integer
+    label: "Ride Ranks"
+  Ride_Mod:
+    input: integer
+    label: "Ride Modifier"
+  #
+  Sing_Ranks:
+    input: integer
+    label: "Athletics Ranks"
+  Sing_Mod:
+    input: integer
+    label: "Athletics Modifier"
+  #
+  Stealth_Ranks:
+    input: integer
+    label: "Stealth Ranks"
+  Stealth_Mod:
+    input: integer
+    label: "Stealth Modifier"
+  #
+  Swim_Ranks:
+    input: integer
+    label: "Athletics Ranks"
+  Swim_Mod:
+    input: integer
+    label: "Athletics Modifier"
+  # --- Professional --- 
+  Acrobatics_Ranks:
+    input: integer
+    label: "Acrobatics Ranks"
+  Acrobatics_Mod:
+    input: integer
+    label: "Acrobatics Modifier"
+  #
+  Acting_Ranks:
+    input: integer
+    label: "Acting Ranks"
+  Acting_Mod:
+    input: integer
+    label: "Acting Modifier"
+  #
+  Art_Ranks:
+    input: integer
+    label: "Athletics Ranks"
+  Art_Mod:
+    input: integer
+    label: "Art Modifier"
+  #
+  Bureaucracy_Ranks:
+    input: integer
+    label: "Bureaucracy Ranks"
+  Bureaucracy_Mod:
+    input: integer
+    label: "Bureaucracy Modifier"
+  #
+  Commerce_Ranks:
+    input: integer
+    label: "Commerce Ranks"
+  Commerce_Mod:
+    input: integer
+    label: "Commerce Modifier"
+  #
+  Courtesy_Ranks:
+    input: integer
+    label: "Courtesy Ranks"
+  Courtesy_Mod:
+    input: integer
+    label: "Courtesy Modifier"
+  #
+  Craft_Ranks:
+    input: integer
+    label: "Craft Ranks"
+  Craft_Mod:
+    input: integer
+    label: "Craft Modifier"
+  #
+  Culture_Ranks:
+    input: integer
+    label: "Culture Ranks"
+  Culture_Mod:
+    input: integer
+    label: "Culture Modifier"
+  #
+  Demolitions_Ranks:
+    input: integer
+    label: "Demolitions Ranks"
+  Demolitions_Mod:
+    input: integer
+    label: "Demolitions Modifier"
+  #
+  Disguise_Ranks:
+    input: integer
+    label: "Disguise Ranks"
+  Disguise_Mod:
+    input: integer
+    label: "Disguise Modifier"
+  #
+  Engineering_Ranks:
+    input: integer
+    label: "Engineering Ranks"
+  Engineering_Mod:
+    input: integer
+    label: "Engineering Modifier"
+  #
+  Forgery_Ranks:
+    input: integer
+    label: "Forgery Ranks"
+  Forgery_Mod:
+    input: integer
+    label: "Forgery Modifier"
+  #
+  Gambling_Ranks:
+    input: integer
+    label: "Gambling Ranks"
+  Gambling_Mod:
+    input: integer
+    label: "Gambling Modifier"
+  #
+  Healing_Ranks:
+    input: integer
+    label: "Healing Ranks"
+  Healing_Mod:
+    input: integer
+    label: "Healing Modifier"
+  #
+  Lockpicking_Ranks:
+    input: integer
+    label: "Lockpicking Ranks"
+  Lockpicking_Mod:
+    input: integer
+    label: "Lockpicking Modifier"
+  #
+  Lore_Ranks:
+    input: integer
+    label: "Lore Ranks"
+  Lore_Mod:
+    input: integer
+    label: "Lore Modifier"
+  #
+  Mechanisms_Ranks:
+    input: integer
+    label: "Mechanisms Ranks"
+  Mechanisms_Mod:
+    input: integer
+    label: "Mechanisms Modifier"
+  #
+  Musicianship_Ranks:
+    input: integer
+    label: "Musicianship Ranks"
+  Musicianship_Mod:
+    input: integer
+    label: "Musicianship Modifier"
+  #
+  Navigation_Ranks:
+    input: integer
+    label: "Navigation Ranks"
+  Navigation_Mod:
+    input: integer
+    label: "Navigation Modifier"
+  #
+  Oratory_Ranks:
+    input: integer
+    label: "Oratory Ranks"
+  Oratory_Mod:
+    input: integer
+    label: "Oratory Modifier"
+  #
+  Pilot_Ranks:
+    input: integer
+    label: "Pilot Ranks"
+  Pilot_Mod:
+    input: integer
+    label: "Pilot Modifier"
+  #
+  Seamanship_Ranks:
+    input: integer
+    label: "Seamanship Ranks"
+  Seamanship_Mod:
+    input: integer
+    label: "Seamanship Modifier"
+  #
+  Seduction_Ranks:
+    input: integer
+    label: "Seduction Ranks"
+  Seduction_Mod:
+    input: integer
+    label: "Seduction Modifier"
+  #
+  Sleight_Ranks:
+    input: integer
+    label: "Sleight Ranks"
+  Sleight_Mod:
+    input: integer
+    label: "Sleight Modifier"
+  #
+  Streetwise_Ranks:
+    input: integer
+    label: "Streetwise Ranks"
+  Streetwise_Mod:
+    input: integer
+    label: "Streetwise Modifier"
+  #
+  Survive_Ranks:
+    input: integer
+    label: "Survive Ranks"
+  Survive_Mod:
+    input: integer
+    label: "Survive Modifier"
+  #
+  Teach_Ranks:
+    input: integer
+    label: "Teach Ranks"
+  Teach_Mod:
+    input: integer
+    label: "Teach Modifier"
+  #
+  Track_Ranks:
+    input: integer
+    label: "Track Ranks"
+  Track_Mod:
+    input: integer
+    label: "Track Modifier"
+  #
+  Blank_Pro_1_Name:
+    input: integer
+    label: "Blank Professional Skill 1 Name"
+  Blank_Pro_1_Ranks:
+    input: integer
+    label: "Blank Professional Skill 1 Ranks"
+  Blank_Pro_1_Mod:
+    input: integer
+    label: "Blank Professional Skill 1 Modifier"
+  #
+  Blank_Pro_2_Name:
+    input: integer
+    label: "Blank Professional Skill 2 Name"
+  Blank_Pro_2_Ranks:
+    input: integer
+    label: "Blank Professional Skill 2 Ranks"
+  Blank_Pro_2_Mod:
+    input: integer
+    label: "Blank Professional Skill 2 Modifier"
+  #
+  Blank_Pro_3_Name:
+    input: integer
+    label: "Blank Professional Skill 3 Name"
+  Blank_Pro_3_Ranks:
+    input: integer
+    label: "Blank Professional Skill 3 Ranks"
+  Blank_Pro_3_Mod:
+    input: integer
+    label: "Blank Professional Skill 3 Modifier"
+  # --- Language --- 
+  Native_Tongue_Ranks:
+    input: integer
+    label: "Native Tongue Ranks"
+  Native_Tongue_Mod:
+    input: integer
+    label: "Native Tongue Modifier"
+  #
+  Language_1_Name:
+    input: integer
+    label: "Language 1 Name"
+  Language_1_Ranks:
+    input: integer
+    label: "Language 1 Ranks"
+  Language_1_Mod:
+    input: integer
+    label: "Language 1 Modifier"
+  #
+  Language_2_Name:
+    input: integer
+    label: "Language 2 Name"
+  Language_2_Ranks:
+    input: integer
+    label: "Language 2 Ranks"
+  Language_2_Mod:
+    input: integer
+    label: "Language 2 Modifier"
+  #
+  Language_3_Name:
+    input: integer
+    label: "Language 3 Name"
+  Language_3_Ranks:
+    input: integer
+    label: "Language 3 Ranks"
+  Language_3_Mod:
+    input: integer
+    label: "Language 3 Modifier"
+  # --- Combat --- 
+  Combat_Style_1_Name:
+    input: integer
+    label: "Combat Style 1 Name"
+  Combat_Style_1_Ranks:
+    input: integer
+    label: "Combat Style 1 Ranks"
+  Combat_Style_1_Mod:
+    input: integer
+    label: "Combat Style 1 Modifier"
+  #
+  Combat_Style_2_Name:
+    input: integer
+    label: "Combat Style 2 Name"
+  Combat_Style_2_Ranks:
+    input: integer
+    label: "Combat Style 2 Ranks"
+  Combat_Style_2_Mod:
+    input: integer
+    label: "Combat Style 2 Modifier"
+  #
+  Unarmed_Ranks:
+    input: integer
+    label: "Unarmed Ranks"
+  Unarmed_Mod:
+    input: integer
+    label: "Unarmed Modifier"
+  # --- Magic --- 
+  Pattern_Control_Ranks:
+    input: integer
+    label: "Pattern Control Ranks"
+  Pattern_Control_Mod:
+    input: integer
+    label: "Pattern Control Modifier"
+  #
+  Weaving_Ranks:
+    input: integer
+    label: "Weaving Ranks"
+  Weaving_Mod:
+    input: integer
+    label: "Weaving Modifier"
+  #
+  Channel_1_Name:
+    input: integer
+    label: "Channel 1 Name"
+  Channel_1_Ranks:
+    input: integer
+    label: "Channel 1 Ranks"
+  Channel_1_Mod:
+    input: integer
+    label: "Channel 1 Modifier"
+  #
+  Channel_2_Name:
+    input: integer
+    label: "Channel 2 Name"
+  Channel_2_Ranks:
+    input: integer
+    label: "Channel 2 Ranks"
+  Channel_2_Mod:
+    input: integer
+    label: "Channel 2 Modifier"
+  #
+  Channel_3_Name:
+    input: integer
+    label: "Channel 3 Name"
+  Channel_3_Ranks:
+    input: integer
+    label: "Channel 3 Ranks"
+  Channel_3_Mod:
+    input: integer
+    label: "Channel 3 Modifier"
+  # ------------- Hit Locations -------------
+  Right_Leg_Damage:
+    input: integer
+    label: "Right Leg Damage"
+  Right_Leg_Armor_AP:
+    input: integer
+    label: "Right Leg Armor AP"
+  Right_Leg_Armor_ENC:
+    input: integer
+    label: "Right Leg Armor ENC"
+  Right_Leg_Natural_Armor_Modifier:
+    input: integer
+    label: "Right Leg Natural Armor Modifier"
+  Right_Leg_Notes:
+    input: text
+    label: "Right Leg Notes"
+  #
+  Left_Leg_Damage:
+    input: integer
+    label: "Left Leg Damage"
+  Left_Leg_Armor_AP:
+    input: integer
+    label: "Left Leg Armor AP"
+  Left_Leg_Armor_ENC:
+    input: integer
+    label: "Left Leg Armor ENC"
+  Left_Leg_Natural_Armor_Modifier:
+    input: integer
+    label: "Left Leg Natural Armor Modifier"
+  Left_Leg_Notes:
+    input: text
+    label: "Left Leg Notes"
+  #
+  Abdomen_Damage:
+    input: integer
+    label: "Abdomen Damage"
+  Abdomen_Armor_AP:
+    input: integer
+    label: "Abdomen Armor AP"
+  Abdomen_Armor_ENC:
+    input: integer
+    label: "Abdomen Armor ENC"
+  Abdomen_Natural_Armor_Modifier:
+    input: integer
+    label: "Abdomen Natural Armor Modifier"
+  Abdomen_Notes:
+    input: text
+    label: "Abdomen Notes"
+  #
+  Chest_Damage:
+    input: integer
+    label: "Chest Damage"
+  Chest_Armor_AP:
+    input: integer
+    label: "Chest Armor AP"
+  Chest_Armor_ENC:
+    input: integer
+    label: "Chest Armor ENC"
+  Chest_Natural_Armor_Modifier:
+    input: integer
+    label: "Chest Natural Armor Modifier"
+  Chest_Notes:
+    input: text
+    label: "Chest Notes"
+  #
+  Right_Arm_Damage:
+    input: integer
+    label: "Right Arm Damage"
+  Right_Arm_Armor_AP:
+    input: integer
+    label: "Right Arm Armor AP"
+  Right_Arm_Armor_ENC:
+    input: integer
+    label: "Right Arm Armor ENC"
+  Right_Arm_Natural_Armor_Modifier:
+    input: integer
+    label: "Right Arm Natural Armor Modifier"
+  Right_Arm_Notes:
+    input: text
+    label: "Right Arm Notes"
+  #
+  Left_Arm_Damage:
+    input: integer
+    label: "Left Arm Damage"
+  Left_Arm_Armor_AP:
+    input: integer
+    label: "Left Arm Armor AP"
+  Left_Arm_Armor_ENC:
+    input: integer
+    label: "Left Arm Armor ENC"
+  Left_Arm_Natural_Armor_Modifier:
+    input: integer
+    label: "Left Arm Natural Armor Modifier"
+  Left_Arm_Notes:
+    input: text
+    label: "Left Arm Notes"
+  #
+  Head_Damage:
+    input: integer
+    label: "Head Damage"
+  Head_Armor_AP:
+    input: integer
+    label: "Head Armor AP"
+  Head_Armor_ENC:
+    input: integer
+    label: "Head Armor ENC"
+  Head_Natural_Armor_Modifier:
+    input: integer
+    label: "Head Natural Armor Modifier"
+  Head_Notes:
+    input: text
+    label: "Head Notes"
